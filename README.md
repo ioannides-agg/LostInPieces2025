@@ -10,7 +10,9 @@ The goal of this assignment is to reconstruct a jigsaw puzzle from its pieces us
 - Python 3.13 or higher
 
 For this Project we use the UV package manager for Python.
+Ruff is also used for formatting and linting.
 To install UV, follow the instructions on the [official UV website](https://docs.astral.sh/uv/).
+
 Once UV is installed, navigate to the project directory and run the following command to install the required dependencies:
 
 ```bash
