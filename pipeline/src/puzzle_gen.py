@@ -1,3 +1,6 @@
+import argparse
+import os
+
 import cv2
 import numpy as np
 from numpy.typing import NDArray
@@ -47,10 +50,7 @@ def rotate_puzzle_piece(piece: NDArray, P: int, Q: int) -> tuple[NDArray, NDArra
     return rotated_pieces, rotations
 
 
-def generate_puzzle(img_path: str, P: int, Q: int, suppress_logs: bool = False):
-    if suppress_logs:
-        logger.disabled = True
-
+def generate_puzzle(img_path: str, P: int, Q: int):
     img = cv2.imread(img_path)
     pieces, aP, aQ = generate_puzzle_pieces(img, P, Q)
     logger.info("--Puzzle pieces generated--")
@@ -61,11 +61,28 @@ def generate_puzzle(img_path: str, P: int, Q: int, suppress_logs: bool = False):
 
     util.plot_pieces(pieces, P=aP, Q=aQ, title="Shuffled and Rotated Puzzle Pieces")
 
+    img_name = img_path.split("/")[-1].split(".")[0]
+    os.makedirs(f"./data/processed/{img_name}", exist_ok=True)
+
+    np.savez_compressed(
+        f"./data/processed/{img_name}/{img_name}_puzzle_P{aP}_Q{aQ}.npz",
+        pieces=pieces,
+        permutation=permutation,
+        rotations=rotations,
+    )
+    logger.info(f"--Puzzle saved to data/processed/{img_name}_puzzle_P{aP}_Q{aQ}.npz--")
+
 
 if __name__ == "__main__":
+    argParser = argparse.ArgumentParser(description="Generate a jigsaw puzzle from an image.")
+    argParser.add_argument("--img_path", type=str, required=True, help="Path to the input image.")
+    argParser.add_argument("--P", type=int, required=True, help="Number of pieces along the height.")
+    argParser.add_argument("--Q", type=int, required=True, help="Number of pieces along the width.")
+
+    args = argParser.parse_args()
+
     generate_puzzle(
-        img_path="./data/raw/tree512x512.jpg",
-        P=3,
-        Q=3,
-        suppress_logs=False,
+        img_path=args.img_path,
+        P=args.P,
+        Q=args.Q,
     )
