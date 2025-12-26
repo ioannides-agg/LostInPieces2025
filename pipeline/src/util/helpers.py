@@ -60,14 +60,32 @@ def reverse_rotation(pieces: NDArray, rotations: NDArray) -> NDArray:
     return np.array(rotated_pieces)
 
 
-def plot_pieces(pieces: NDArray, P: int, Q: int, title: str):
-    plt.figure(figsize=(P, Q))
-    plt.title(title)
-    plt.axis("off")
-    for idr, row in enumerate(pieces):
-        for idc, piece in enumerate(row):
-            plt.subplot(P, Q, idr * Q + idc + 1)
+def plot_pieces(pieces: NDArray, P: int, Q: int, title: str, borders: dict | None = None):
+    plt.figure(figsize=(Q, P))
+    plt.suptitle(title)
+
+    red = np.array([0, 0, 255], dtype=np.uint8)
+
+    for r in range(P):
+        for c in range(Q):
+            piece = pieces[r, c].copy()
+
+            if borders is not None:
+                red = np.array([0, 0, 255], dtype=np.uint8)
+                mask = np.zeros_like(piece, dtype=np.uint8)
+
+                mask[: borders["top"].shape[2], :, :] = red
+                mask[-borders["bottom"].shape[2] :, :, :] = red
+                mask[:, : borders["left"].shape[3], :] = red
+                mask[:, -borders["right"].shape[3] :, :] = red
+
+                alpha = 0.5
+
+                piece = cv2.addWeighted(piece, alpha, mask, alpha, 0)
+
+            plt.subplot(P, Q, r * Q + c + 1)
             plt.imshow(cv2.cvtColor(piece, cv2.COLOR_BGR2RGB))
             plt.axis("off")
 
+    plt.tight_layout()
     plt.show()

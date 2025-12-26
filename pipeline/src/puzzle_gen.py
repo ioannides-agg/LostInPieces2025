@@ -50,16 +50,42 @@ def rotate_puzzle_piece(piece: NDArray, P: int, Q: int) -> tuple[NDArray, NDArra
     return rotated_pieces, rotations
 
 
-def generate_puzzle(img_path: str, P: int, Q: int):
+def extract_borders(pieces, Wb):
+    P, Q, h, w, C = pieces.shape
+    borders = {
+        "top": np.zeros((P, Q, Wb, w, C), dtype=pieces.dtype),
+        "bottom": np.zeros((P, Q, Wb, w, C), dtype=pieces.dtype),
+        "left": np.zeros((P, Q, h, Wb, C), dtype=pieces.dtype),
+        "right": np.zeros((P, Q, h, Wb, C), dtype=pieces.dtype),
+    }
+
+    for r in range(P):
+        for c in range(Q):
+            piece = pieces[r, c]
+            borders["top"][r, c] = piece[:Wb, :, :]
+            borders["bottom"][r, c] = piece[-Wb:, :, :]
+            borders["left"][r, c] = piece[:, :Wb, :]
+            borders["right"][r, c] = piece[:, -Wb:, :]
+
+    return borders
+
+
+def generate_puzzle(img_path: str, P: int, Q: int, Wb: int):
     img = cv2.imread(img_path)
     pieces, aP, aQ = generate_puzzle_pieces(img, P, Q)
-    logger.info("--Puzzle pieces generated--")
+    logger.info(f"--Puzzle pieces generated: {pieces.shape}--")
     pieces, permutation = shuffle_puzzle_pieces(pieces, aP, aQ)
     logger.info(f"--Puzzle pieces shuffled with permutation: {permutation}--")
     pieces, rotations = rotate_puzzle_piece(pieces, aP, aQ)
     logger.info(f"--Puzzle pieces rotated with rotations: {[int(i * 90) for i in rotations.flatten()]}--")
 
-    util.plot_pieces(pieces, P=aP, Q=aQ, title="Shuffled and Rotated Puzzle Pieces")
+    Wb = max(Wb, min(pieces.shape[2], pieces.shape[3]) // 8)
+    borders = extract_borders(pieces, Wb=Wb)
+    logger.info(
+        f"--Borders extracted from puzzle pieces: Wb: {Wb} top: {borders['top'].shape}, bottom: {borders['bottom'].shape}, left: {borders['left'].shape}, right: {borders['right'].shape}--"
+    )
+
+    util.plot_pieces(pieces, P=aP, Q=aQ, title="Shuffled and Rotated Puzzle Pieces", borders=borders)
 
     img_name = img_path.split("/")[-1].split(".")[0]
     os.makedirs(f"./data/processed/{img_name}", exist_ok=True)
@@ -69,6 +95,7 @@ def generate_puzzle(img_path: str, P: int, Q: int):
         pieces=pieces,
         permutation=permutation,
         rotations=rotations,
+        borders=borders,
     )
     logger.info(f"--Puzzle saved to data/processed/{img_name}_puzzle_P{aP}_Q{aQ}.npz--")
 
@@ -85,4 +112,5 @@ if __name__ == "__main__":
         img_path=args.img_path,
         P=args.P,
         Q=args.Q,
+        Wb=3,
     )
