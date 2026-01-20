@@ -2,6 +2,7 @@ import argparse
 import os
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 
@@ -50,7 +51,7 @@ def rotate_puzzle_piece(piece: NDArray, P: int, Q: int) -> tuple[NDArray, NDArra
     return rotated_pieces, rotations
 
 
-def extract_borders(pieces, Wb):
+def extract_borders(pieces, Wb) -> dict[str, NDArray]:
     P, Q, h, w, C = pieces.shape
     borders = {
         "top": np.zeros((P, Q, Wb, w, C), dtype=pieces.dtype),
@@ -86,18 +87,24 @@ def generate_puzzle(img_path: str, P: int, Q: int, Wb: int):
     )
 
     util.plot_pieces(pieces, P=aP, Q=aQ, title="Shuffled and Rotated Puzzle Pieces", borders=borders)
+    plt.show()
 
     img_name = img_path.split("/")[-1].split(".")[0]
-    os.makedirs(f"./data/processed/{img_name}", exist_ok=True)
+    os.makedirs(f"./data/processed/{img_name}/puzzle", exist_ok=True)
 
     np.savez_compressed(
-        f"./data/processed/{img_name}/{img_name}_puzzle_P{aP}_Q{aQ}.npz",
+        f"./data/processed/{img_name}/puzzle/puzzle_P{aP}_Q{aQ}.npz",
+        P=aP,
+        Q=aQ,
         pieces=pieces,
         permutation=permutation,
         rotations=rotations,
-        borders=borders,
+        borders_top=borders["top"],
+        borders_bottom=borders["bottom"],
+        borders_left=borders["left"],
+        borders_right=borders["right"],
     )
-    logger.info(f"--Puzzle saved to data/processed/{img_name}_puzzle_P{aP}_Q{aQ}.npz--")
+    logger.info(f"--Puzzle saved to data/processed/{img_name}/puzzle/puzzle_P{aP}_Q{aQ}.npz--")
 
 
 if __name__ == "__main__":

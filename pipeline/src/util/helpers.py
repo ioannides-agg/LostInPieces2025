@@ -60,6 +60,13 @@ def reverse_rotation(pieces: NDArray, rotations: NDArray) -> NDArray:
     return np.array(rotated_pieces)
 
 
+def plot_piece(piece: NDArray, title: str):
+    plt.figure()
+    plt.title(title)
+    plt.imshow(cv2.cvtColor(piece, cv2.COLOR_BGR2RGB))
+    plt.axis("off")
+
+
 def plot_pieces(pieces: NDArray, P: int, Q: int, title: str, borders: dict | None = None):
     plt.figure(figsize=(Q, P))
     plt.suptitle(title)
@@ -88,4 +95,25 @@ def plot_pieces(pieces: NDArray, P: int, Q: int, title: str, borders: dict | Non
             plt.axis("off")
 
     plt.tight_layout()
-    plt.show()
+
+
+def plot_color_hist(hist: NDArray, bins=(8, 4, 4)):
+    hist_3d = hist.reshape(bins)
+
+    h_hist = np.sum(hist_3d, axis=(1, 2))
+    s_hist = np.sum(hist_3d, axis=(0, 2))
+    v_hist = np.sum(hist_3d, axis=(0, 1))
+
+    channel_hist = [h_hist, s_hist, v_hist]
+    channel_names = ["Hue", "Saturation", "Value"]
+    colors = ["r", "g", "b"]
+
+    plt.figure(figsize=(13, 4))
+    for i, (ch, name, col) in enumerate(zip(channel_hist, channel_names, colors)):
+        plt.subplot(1, 3, i + 1)
+        plt.bar(range(len(ch)), ch, color=col)
+        plt.title(name)
+        plt.xlabel("Bin")
+        plt.ylabel("Normalized count")
+
+    plt.tight_layout()
