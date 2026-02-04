@@ -117,3 +117,31 @@ def plot_color_hist(hist: NDArray, bins=(8, 4, 4)):
         plt.ylabel("Normalized count")
 
     plt.tight_layout()
+
+
+def plot_texture_features(features: NDArray, num_filters: int = 12):
+    """
+    Plots the texture features (Mean and Std Dev) for each filter.
+    Assumes features vector is of size 2 * num_filters.
+    Structure: [Mean_1, Std_1, Mean_2, Std_2, ..., Mean_N, Std_N]
+    """
+    means = features[0::2]
+    stds = features[1::2]
+
+    indices = np.arange(num_filters)
+
+    plt.figure(figsize=(10, 4))
+
+    plt.subplot(1, 2, 1)
+    plt.bar(indices, means, color='blue', alpha=0.7)
+    plt.title("Gabor Filter Means")
+    plt.xlabel("Filter Index")
+    plt.ylabel("Mean Response")
+
+    plt.subplot(1, 2, 2)
+    plt.bar(indices, stds, color='orange', alpha=0.7)
+    plt.title("Gabor Filter Std Devs")
+    plt.xlabel("Filter Index")
+    plt.ylabel("Standard Deviation")
+
+    plt.tight_layout()
